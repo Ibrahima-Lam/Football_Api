@@ -1,0 +1,15 @@
+.text-purple { color: #6f42c1; }
+.text-orange { color: #fd7e14; }
+.bg-purple { background-color: #6f42c1; }
+.bg-orange { background-color: #fd7e14; }
+
+.sidebar-heading { letter-spacing: 0.5px; }
+
+.card { transition: box-shadow .2s ease; }
+.card:hover { box-shadow: 0 .25rem .75rem rgba(0,0,0,.08) !important; }
+
+.pagination { margin-bottom: 0; }
+
+.btn-group .btn { transition: all .15s ease; }
+
+.dropdown-menu { border: 0; box-shadow: 0 .5rem 1rem rgba(0,0,0,.15); }

@@ -1,0 +1,220 @@
+<div class="container-fluid py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0"><i class="bi bi-speedometer2"></i> Dashboard</h2>
+  </div>
+
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <div class="row g-2 align-items-center">
+        <div class="col-md-6">
+          <label class="form-label small text-muted mb-1">Global entity search</label>
+          <div class="d-flex gap-2">
+            <input #entityInput class="form-control" type="text" list="entity-options"
+              [(ngModel)]="entitySearch" placeholder="Search an entity (e.g. Matches, Players)..."
+              (keyup.enter)="goToEntity(entityInput.value)">
+            <datalist id="entity-options">
+              @for (e of entities; track e.route) {
+                <option [value]="e.label"></option>
+              }
+            </datalist>
+            <button class="btn btn-primary" (click)="goToEntity(entityInput.value)">
+              <i class="bi bi-search"></i>
+            </button>
+          </div>
+        </div>
+        <div class="col-md-6 text-md-end">
+          <div class="d-flex flex-wrap gap-2 justify-content-md-end">
+            @for (e of entities; track e.route) {
+              <a class="badge text-bg-light border fw-normal text-decoration-none" [routerLink]="e.route">{{ e.label }}</a>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  @if (errorMessage) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <i class="bi bi-exclamation-triangle"></i> {{ errorMessage }}
+      <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+    </div>
+  }
+
+  @if (loading) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p class="text-muted mt-2 mb-0">Loading dashboard data...</p>
+    </div>
+  } @else {
+    <div class="row g-3 mb-4">
+      <div class="col-xl-3 col-md-6">
+        <a class="card border-0 shadow-sm h-100 text-decoration-none stat-card" routerLink="/competitions">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <p class="text-muted text-uppercase small mb-1">Competitions</p>
+                <h3 class="mb-0 fw-bold">{{ stats.competitions }}</h3>
+              </div>
+              <div class="rounded-3 bg-primary bg-opacity-10 p-3">
+                <i class="bi bi-trophy fs-4 text-primary"></i>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+      <div class="col-xl-3 col-md-6">
+        <a class="card border-0 shadow-sm h-100 text-decoration-none stat-card" routerLink="/teams">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <p class="text-muted text-uppercase small mb-1">Teams</p>
+                <h3 class="mb-0 fw-bold">{{ stats.teams }}</h3>
+              </div>
+              <div class="rounded-3 bg-success bg-opacity-10 p-3">
+                <i class="bi bi-people fs-4 text-success"></i>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+      <div class="col-xl-3 col-md-6">
+        <a class="card border-0 shadow-sm h-100 text-decoration-none stat-card" routerLink="/players">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <p class="text-muted text-uppercase small mb-1">Players</p>
+                <h3 class="mb-0 fw-bold">{{ stats.players }}</h3>
+              </div>
+              <div class="rounded-3 bg-info bg-opacity-10 p-3">
+                <i class="bi bi-person fs-4 text-info"></i>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+      <div class="col-xl-3 col-md-6">
+        <a class="card border-0 shadow-sm h-100 text-decoration-none stat-card" routerLink="/matches">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <p class="text-muted text-uppercase small mb-1">Matches</p>
+                <h3 class="mb-0 fw-bold">{{ stats.matches }}</h3>
+              </div>
+              <div class="rounded-3 bg-warning bg-opacity-10 p-3">
+                <i class="bi bi-activity fs-4 text-warning"></i>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+      <div class="col-xl-3 col-md-6">
+        <a class="card border-0 shadow-sm h-100 text-decoration-none stat-card" routerLink="/continents">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <p class="text-muted text-uppercase small mb-1">Continents</p>
+                <h3 class="mb-0 fw-bold">{{ stats.continents }}</h3>
+              </div>
+              <div class="rounded-3 bg-danger bg-opacity-10 p-3">
+                <i class="bi bi-globe fs-4 text-danger"></i>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+      <div class="col-xl-3 col-md-6">
+        <a class="card border-0 shadow-sm h-100 text-decoration-none stat-card" routerLink="/countries">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <p class="text-muted text-uppercase small mb-1">Countries</p>
+                <h3 class="mb-0 fw-bold">{{ stats.countries }}</h3>
+              </div>
+              <div class="rounded-3 bg-secondary bg-opacity-10 p-3">
+                <i class="bi bi-map fs-4 text-secondary"></i>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+      <div class="col-xl-3 col-md-6">
+        <a class="card border-0 shadow-sm h-100 text-decoration-none stat-card" routerLink="/stadiums">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <p class="text-muted text-uppercase small mb-1">Stadiums</p>
+                <h3 class="mb-0 fw-bold">{{ stats.stadiums }}</h3>
+              </div>
+              <div class="rounded-3 bg-purple bg-opacity-10 p-3">
+                <i class="bi bi-building fs-4 text-purple"></i>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+      <div class="col-xl-3 col-md-6">
+        <a class="card border-0 shadow-sm h-100 text-decoration-none stat-card" routerLink="/coaches">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <p class="text-muted text-uppercase small mb-1">Coaches</p>
+                <h3 class="mb-0 fw-bold">{{ stats.coaches }}</h3>
+              </div>
+              <div class="rounded-3 bg-orange bg-opacity-10 p-3">
+                <i class="bi bi-person-gear fs-4 text-orange"></i>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white border-0">
+        <h5 class="mb-0"><i class="bi bi-clock-history"></i> Recent Matches</h5>
+      </div>
+      <div class="card-body">
+        @if (recentMatches.length === 0) {
+          <p class="text-muted text-center mb-0">No recent matches.</p>
+        } @else {
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Home</th>
+                  <th class="text-center">Score</th>
+                  <th>Away</th>
+                  <th>Status</th>
+                  <th>Kickoff</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (m of recentMatches; track m.id) {
+                  <tr>
+                    <td><strong>{{ m.homeTeam?.name || m.homeTeamId || '-' }}</strong></td>
+                    <td class="text-center fw-bold">{{ m.homeScore ?? '-' }} - {{ m.awayScore ?? '-' }}</td>
+                    <td><strong>{{ m.awayTeam?.name || m.awayTeamId || '-' }}</strong></td>
+                    <td>
+                      <span class="badge" [class.bg-success]="m.status === 'FINISHED'"
+                        [class.bg-warning]="m.status === 'LIVE'"
+                        [class.bg-info]="m.status === 'SCHEDULED'"
+                        [class.bg-secondary]="m.status !== 'FINISHED' && m.status !== 'LIVE' && m.status !== 'SCHEDULED'">
+                        {{ m.status || '-' }}
+                      </span>
+                    </td>
+                    <td class="text-muted small">{{ m.kickoff ? (m.kickoff | date: 'medium') : '-' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

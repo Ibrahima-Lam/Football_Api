@@ -1,0 +1,10 @@
+package com.fscore.app.repository;
+
+import com.fscore.app.entity.GroupTeam;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface GroupTeamRepository extends JpaRepository<GroupTeam, String>, JpaSpecificationExecutor<GroupTeam> {
+}
