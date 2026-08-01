@@ -4,7 +4,6 @@ import com.fscore.app.dto.request.TranslationRequest;
 import com.fscore.app.dto.response.TranslationResponse;
 import com.fscore.app.dto.response.PageResponse;
 import com.fscore.app.entity.Translation;
-import com.fscore.app.entity.*;
 import com.fscore.app.service.TranslationService;
 import com.fscore.app.service.FilterService;
 import jakarta.validation.Valid;

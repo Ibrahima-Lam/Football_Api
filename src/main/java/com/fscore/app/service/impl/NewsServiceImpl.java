@@ -4,7 +4,9 @@ import com.fscore.app.dto.response.NewsResponse;
 import com.fscore.app.entity.News;
 import com.fscore.app.exception.ResourceNotFoundException;
 import com.fscore.app.repository.NewsRepository;
+import com.fscore.app.service.LiveScoreService;
 import com.fscore.app.service.NewsService;
+import com.fscore.app.service.PushNotificationService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,9 +18,15 @@ import java.util.Optional;
 public class NewsServiceImpl implements NewsService {
 
     private final NewsRepository repository;
+    private final LiveScoreService liveScoreService;
+    private final PushNotificationService pushNotificationService;
 
-    public NewsServiceImpl(NewsRepository repository) {
+    public NewsServiceImpl(NewsRepository repository,
+                           LiveScoreService liveScoreService,
+                           PushNotificationService pushNotificationService) {
         this.repository = repository;
+        this.liveScoreService = liveScoreService;
+        this.pushNotificationService = pushNotificationService;
     }
 
     @Override
@@ -33,7 +41,10 @@ public class NewsServiceImpl implements NewsService {
 
     @Override
     public News save(News entity) {
-        return repository.save(entity);
+        News saved = repository.save(entity);
+        liveScoreService.broadcastNews(saved);
+        pushNotificationService.notifyNews(saved);
+        return saved;
     }
 
     @Override
@@ -41,7 +52,9 @@ public class NewsServiceImpl implements NewsService {
         News existing = repository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("News not found with id: " + id));
         entity.setId(existing.getId());
-        return repository.save(entity);
+        News updated = repository.save(entity);
+        liveScoreService.broadcastNews(updated);
+        return updated;
     }
 
     @Override

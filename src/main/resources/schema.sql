@@ -697,6 +697,16 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS device_tokens (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES api_users(id),
+    token VARCHAR(500) NOT NULL,
+    platform VARCHAR(20),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_device_token_token UNIQUE (token),
+    CONSTRAINT chk_device_token_platform CHECK (platform IN ('ANDROID', 'IOS', 'WEB'))
+);
+
 CREATE INDEX IF NOT EXISTS idx_continent_code ON continents(code);
 CREATE INDEX IF NOT EXISTS idx_country_name ON countries(name);
 CREATE INDEX IF NOT EXISTS idx_country_fifa ON countries(fifa_code);
@@ -769,6 +779,7 @@ CREATE INDEX IF NOT EXISTS idx_translation_entity ON translations(entity_type, e
 CREATE INDEX IF NOT EXISTS idx_translation_language ON translations(language);
 CREATE INDEX IF NOT EXISTS idx_audit_api_key ON audit_logs(api_key_id);
 CREATE INDEX IF NOT EXISTS idx_audit_created_at ON audit_logs(created_at);
+CREATE INDEX IF NOT EXISTS idx_device_token_user ON device_tokens(user_id);
 
 CREATE UNIQUE INDEX IF NOT EXISTS uq_continent_code ON continents(code);
 CREATE UNIQUE INDEX IF NOT EXISTS uq_country_iso2 ON countries(iso2);

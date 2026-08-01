@@ -4,7 +4,9 @@ import com.fscore.app.dto.response.MatchEventResponse;
 import com.fscore.app.entity.MatchEvent;
 import com.fscore.app.exception.ResourceNotFoundException;
 import com.fscore.app.repository.MatchEventRepository;
+import com.fscore.app.service.LiveScoreService;
 import com.fscore.app.service.MatchEventService;
+import com.fscore.app.service.PushNotificationService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,9 +18,15 @@ import java.util.Optional;
 public class MatchEventServiceImpl implements MatchEventService {
 
     private final MatchEventRepository repository;
+    private final LiveScoreService liveScoreService;
+    private final PushNotificationService pushNotificationService;
 
-    public MatchEventServiceImpl(MatchEventRepository repository) {
+    public MatchEventServiceImpl(MatchEventRepository repository,
+                                 LiveScoreService liveScoreService,
+                                 PushNotificationService pushNotificationService) {
         this.repository = repository;
+        this.liveScoreService = liveScoreService;
+        this.pushNotificationService = pushNotificationService;
     }
 
     @Override
@@ -33,7 +41,10 @@ public class MatchEventServiceImpl implements MatchEventService {
 
     @Override
     public MatchEvent save(MatchEvent entity) {
-        return repository.save(entity);
+        MatchEvent saved = repository.save(entity);
+        liveScoreService.broadcastMatchEvent(saved);
+        pushNotificationService.notifyMatchEvent(saved);
+        return saved;
     }
 
     @Override
@@ -41,7 +52,10 @@ public class MatchEventServiceImpl implements MatchEventService {
         MatchEvent existing = repository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("MatchEvent not found with id: " + id));
         entity.setId(existing.getId());
-        return repository.save(entity);
+        MatchEvent updated = repository.save(entity);
+        liveScoreService.broadcastMatchEvent(updated);
+        pushNotificationService.notifyMatchEvent(updated);
+        return updated;
     }
 
     @Override

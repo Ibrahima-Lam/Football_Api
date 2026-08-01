@@ -1,0 +1,12 @@
+{
+  "enabled": false,
+  "vapidKey": "",
+  "firebase": {
+    "apiKey": "",
+    "authDomain": "",
+    "projectId": "",
+    "storageBucket": "",
+    "messagingSenderId": "",
+    "appId": ""
+  }
+}

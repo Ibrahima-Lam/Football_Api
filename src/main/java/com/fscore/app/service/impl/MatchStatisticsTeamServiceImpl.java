@@ -4,6 +4,7 @@ import com.fscore.app.dto.response.MatchStatisticsTeamResponse;
 import com.fscore.app.entity.MatchStatisticsTeam;
 import com.fscore.app.exception.ResourceNotFoundException;
 import com.fscore.app.repository.MatchStatisticsTeamRepository;
+import com.fscore.app.service.LiveScoreService;
 import com.fscore.app.service.MatchStatisticsTeamService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,9 +17,11 @@ import java.util.Optional;
 public class MatchStatisticsTeamServiceImpl implements MatchStatisticsTeamService {
 
     private final MatchStatisticsTeamRepository repository;
+    private final LiveScoreService liveScoreService;
 
-    public MatchStatisticsTeamServiceImpl(MatchStatisticsTeamRepository repository) {
+    public MatchStatisticsTeamServiceImpl(MatchStatisticsTeamRepository repository, LiveScoreService liveScoreService) {
         this.repository = repository;
+        this.liveScoreService = liveScoreService;
     }
 
     @Override
@@ -33,7 +36,9 @@ public class MatchStatisticsTeamServiceImpl implements MatchStatisticsTeamServic
 
     @Override
     public MatchStatisticsTeam save(MatchStatisticsTeam entity) {
-        return repository.save(entity);
+        MatchStatisticsTeam saved = repository.save(entity);
+        liveScoreService.broadcastTeamStats(saved);
+        return saved;
     }
 
     @Override
@@ -41,7 +46,9 @@ public class MatchStatisticsTeamServiceImpl implements MatchStatisticsTeamServic
         MatchStatisticsTeam existing = repository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("MatchStatisticsTeam not found with id: " + id));
         entity.setId(existing.getId());
-        return repository.save(entity);
+        MatchStatisticsTeam updated = repository.save(entity);
+        liveScoreService.broadcastTeamStats(updated);
+        return updated;
     }
 
     @Override

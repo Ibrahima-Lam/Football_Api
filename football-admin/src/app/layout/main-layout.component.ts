@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 import { GlobalFilterService } from '../services/global-filter.service';
 import { AuthService } from '../services/auth.service';
+import { FcmService } from '../services/fcm.service';
 
 @Component({
   selector: 'app-main-layout',
@@ -18,9 +19,10 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
   userMenuOpen = signal(false);
   private destroy$ = new Subject<void>();
 
-  constructor(public globalFilter: GlobalFilterService, private auth: AuthService, private cdr: ChangeDetectorRef) {}
+  constructor(public globalFilter: GlobalFilterService, private auth: AuthService, private cdr: ChangeDetectorRef, private fcm: FcmService) {}
 
   ngOnInit() {
+    this.fcm.init();
     this.globalFilter.loadCompetitions().subscribe(() => this.cdr.detectChanges());
     this.globalFilter.state$.pipe(takeUntil(this.destroy$)).subscribe(s => {
       if (!s.competitionId && !s.seasonId) {
@@ -71,6 +73,6 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
 
   logout() {
     this.userMenuOpen.set(false);
-    this.auth.logout();
+    this.fcm.disable().then(() => this.auth.logout());
   }
 }

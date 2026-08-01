@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { Subject, of } from 'rxjs';
 import { catchError, takeUntil } from 'rxjs/operators';
 import { ApiService } from '../services/api.service';
+import { FcmSettingsComponent } from './fcm-settings.component';
 
 export const DASHBOARD_ENTITIES: { label: string; route: string }[] = [
   { label: 'Continents', route: '/continents' },
@@ -60,7 +61,7 @@ export const DASHBOARD_ENTITIES: { label: string; route: string }[] = [
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [RouterLink, CommonModule, FormsModule],
+  imports: [RouterLink, CommonModule, FormsModule, FcmSettingsComponent],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css']
 })

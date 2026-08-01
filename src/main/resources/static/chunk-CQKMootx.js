@@ -1,0 +1,1 @@
+import{_ as xt,c as _,f as dn,h as un,i as S,l as _e,m as k,n as C,o as X,p as g,r as R,t as At}from"./chunk-BvlC5Eog.js";R(`firebase`,`12.17.0`,`app`);export{dn as getApps,xt as initializeApp};

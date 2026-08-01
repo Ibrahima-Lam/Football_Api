@@ -4,7 +4,9 @@ import com.fscore.app.dto.response.MatchResponse;
 import com.fscore.app.entity.Match;
 import com.fscore.app.exception.ResourceNotFoundException;
 import com.fscore.app.repository.MatchRepository;
+import com.fscore.app.service.LiveScoreService;
 import com.fscore.app.service.MatchService;
+import com.fscore.app.service.PushNotificationService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,9 +18,15 @@ import java.util.Optional;
 public class MatchServiceImpl implements MatchService {
 
     private final MatchRepository repository;
+    private final LiveScoreService liveScoreService;
+    private final PushNotificationService pushNotificationService;
 
-    public MatchServiceImpl(MatchRepository repository) {
+    public MatchServiceImpl(MatchRepository repository,
+                            LiveScoreService liveScoreService,
+                            PushNotificationService pushNotificationService) {
         this.repository = repository;
+        this.liveScoreService = liveScoreService;
+        this.pushNotificationService = pushNotificationService;
     }
 
     @Override
@@ -33,7 +41,9 @@ public class MatchServiceImpl implements MatchService {
 
     @Override
     public Match save(Match entity) {
-        return repository.save(entity);
+        Match saved = repository.save(entity);
+        liveScoreService.broadcastMatchUpdate(saved);
+        return saved;
     }
 
     @Override
@@ -41,7 +51,10 @@ public class MatchServiceImpl implements MatchService {
         Match existing = repository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Match not found with id: " + id));
         entity.setId(existing.getId());
-        return repository.save(entity);
+        Match updated = repository.save(entity);
+        liveScoreService.broadcastMatchUpdate(updated);
+        pushNotificationService.notifyMatchUpdate(existing, updated);
+        return updated;
     }
 
     @Override
