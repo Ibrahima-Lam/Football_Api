@@ -58,6 +58,49 @@ import { GlobalFilterService, GlobalFilterState } from '../services/global-filte
                     } @else if (field.type === 'date' || field.type === 'datetime-local') {
                       <input class="form-control" [type]="field.type" [name]="field.name" [(ngModel)]="model[field.name]"
                         [required]="field.required" [placeholder]="getFieldPlaceholder(field)">
+                    } @else if (field.type === 'file') {
+                      <div>
+                        @if (uploading[field.name]) {
+                          <div class="d-flex align-items-center gap-2 text-muted small">
+                            <div class="spinner-border spinner-border-sm" role="status"></div>
+                            Upload en cours...
+                          </div>
+                        } @else {
+                          @if (model[field.name]) {
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                              @if (field.fileKind === 'video') {
+                                <video [src]="model[field.name]" class="file-preview" controls></video>
+                              } @else {
+                                <img [src]="model[field.name]" class="file-preview" alt="">
+                              }
+                              <div class="flex-grow-1">
+                                <code class="small text-break">{{ model[field.name] }}</code>
+                                <div class="d-flex gap-2 mt-1">
+                                  <label class="btn btn-sm btn-outline-secondary mb-0">
+                                    Remplacer
+                                    <input type="file" class="d-none"
+                                      [accept]="field.fileKind === 'video' ? 'video/*' : 'image/*'"
+                                      (change)="onFileSelected(field, $event)">
+                                  </label>
+                                  <button type="button" class="btn btn-sm btn-outline-danger" (click)="clearFile(field)">
+                                    <i class="bi bi-trash me-1"></i>Retirer
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          } @else {
+                            <label class="btn btn-sm btn-outline-primary mb-0">
+                              <i class="bi bi-upload me-1"></i> Choisir un fichier
+                              <input type="file" class="d-none"
+                                [accept]="field.fileKind === 'video' ? 'video/*' : 'image/*'"
+                                (change)="onFileSelected(field, $event)">
+                            </label>
+                          }
+                          @if (uploadError[field.name]) {
+                            <div class="text-danger small mt-1">{{ uploadError[field.name] }}</div>
+                          }
+                        }
+                      </div>
                     } @else {
                       <input class="form-control" [type]="field.type" [name]="field.name" [(ngModel)]="model[field.name]"
                         [required]="field.required" [minlength]="field.minLength" [maxlength]="field.maxLength"
@@ -85,6 +128,7 @@ import { GlobalFilterService, GlobalFilterState } from '../services/global-filte
   styles: [`
     .modal-backdrop { z-index: 1050; }
     .modal { z-index: 1055; }
+    .file-preview { max-height: 96px; max-width: 160px; object-fit: cover; border-radius: 6px; border: 1px solid var(--bs-border-color); }
   `]
 })
 export class FormModalComponent implements OnInit, OnDestroy {
@@ -98,6 +142,8 @@ export class FormModalComponent implements OnInit, OnDestroy {
   submitting = false;
   loadingOptions = false;
   optionMap: Record<string, { label: string; value: any }[]> = {};
+  uploading: Record<string, boolean> = {};
+  uploadError: Record<string, string> = {};
 
   private destroy$ = new Subject<void>();
 
@@ -184,6 +230,43 @@ export class FormModalComponent implements OnInit, OnDestroy {
   resetSubmitting() {
     this.submitting = false;
     this.cdr.detectChanges();
+  }
+
+  onFileSelected(field: FormFieldDef, event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+
+    const kind = field.fileKind ?? 'image';
+    if (kind === 'image' && !file.type.startsWith('image/')) {
+      this.uploadError[field.name] = 'Format image requis (JPG, PNG, GIF, WEBP, SVG)';
+      return;
+    }
+    if (kind === 'video' && !file.type.startsWith('video/')) {
+      this.uploadError[field.name] = 'Format vidéo requis (MP4, WEBM)';
+      return;
+    }
+
+    this.uploading[field.name] = true;
+    this.uploadError[field.name] = '';
+    this.api.upload(file).pipe(takeUntil(this.destroy$)).subscribe({
+      next: res => {
+        this.model[field.name] = res.url;
+        this.uploading[field.name] = false;
+        this.cdr.detectChanges();
+      },
+      error: (e: any) => {
+        this.uploading[field.name] = false;
+        this.uploadError[field.name] = e?.error?.message ?? e?.message ?? "Échec de l'upload";
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  clearFile(field: FormFieldDef) {
+    this.model[field.name] = null;
+    this.uploadError[field.name] = '';
   }
 
   onSubmit() {

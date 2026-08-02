@@ -49,11 +49,27 @@ public class FcmService {
             FirebaseMessaging.getInstance(app).send(msg);
         } catch (FirebaseMessagingException e) {
             log.warn("FCM send to token failed: {}", e.getMessage());
+            if (isInvalidToken(e)) {
+                removeStoredToken(token);
+            }
         }
     }
 
     @Async("fcmExecutor")
     public void sendToTokens(List<String> tokens, PushMessage message) {
+        doSendToTokens(tokens, message);
+    }
+
+    @Async("fcmExecutor")
+    public void sendToAllTokens(PushMessage message) {
+        List<String> tokens = deviceTokenRepository.findAll().stream()
+            .map(DeviceToken::getToken)
+            .filter(StringUtils::hasText)
+            .toList();
+        doSendToTokens(tokens, message);
+    }
+
+    private void doSendToTokens(List<String> tokens, PushMessage message) {
         if (tokens == null || tokens.isEmpty()) {
             return;
         }
@@ -71,20 +87,12 @@ public class FcmService {
                 if (response.getFailureCount() > 0) {
                     log.warn("FCM multicast: {}/{} messages failed",
                         response.getFailureCount(), batch.size());
+                    cleanupInvalidTokens(batch, response.getResponses());
                 }
             }
         } catch (FirebaseMessagingException e) {
             log.warn("FCM multicast failed: {}", e.getMessage());
         }
-    }
-
-    @Async("fcmExecutor")
-    public void sendToAllTokens(PushMessage message) {
-        List<String> tokens = deviceTokenRepository.findAll().stream()
-            .map(DeviceToken::getToken)
-            .filter(StringUtils::hasText)
-            .toList();
-        sendToTokens(tokens, message);
     }
 
     @Async("fcmExecutor")
@@ -133,6 +141,28 @@ public class FcmService {
 
     private Map<String, String> normalizeData(Map<String, String> data) {
         return data != null ? data : Map.of();
+    }
+
+    private void cleanupInvalidTokens(List<String> tokens, List<SendResponse> responses) {
+        for (int i = 0; i < responses.size() && i < tokens.size(); i++) {
+            SendResponse response = responses.get(i);
+            if (response.isSuccessful()) {
+                continue;
+            }
+            Exception exception = response.getException();
+            if (exception instanceof FirebaseMessagingException fme && isInvalidToken(fme)) {
+                removeStoredToken(tokens.get(i));
+            }
+        }
+    }
+
+    private boolean isInvalidToken(FirebaseMessagingException exception) {
+        MessagingErrorCode code = exception.getMessagingErrorCode();
+        return code == MessagingErrorCode.UNREGISTERED || code == MessagingErrorCode.INVALID_ARGUMENT;
+    }
+
+    private void removeStoredToken(String token) {
+        deviceTokenRepository.findByToken(token).ifPresent(deviceTokenRepository::delete);
     }
 
     private List<List<String>> partition(List<String> tokens, int size) {

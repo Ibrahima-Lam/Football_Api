@@ -53,6 +53,7 @@ public class FilterService {
         Map.entry("stadiumRepository", new String[]{"name", "address", "country.name", "city.name"}),
         Map.entry("stageRepository", new String[]{"name", "season.name"}),
         Map.entry("standingRepository", new String[]{"team.name", "form"}),
+        Map.entry("storedFileRepository", new String[]{"originalName", "fileName", "category", "contentType"}),
         Map.entry("suspensionRepository", new String[]{"player.fullName", "team.name", "reason"}),
         Map.entry("teamCoachRepository", new String[]{"team.name", "coach.fullName"}),
         Map.entry("teamRepository", new String[]{"name", "shortName", "code", "country.name", "stadium.name"}),

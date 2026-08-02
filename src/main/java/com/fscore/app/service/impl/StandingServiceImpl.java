@@ -4,6 +4,7 @@ import com.fscore.app.dto.response.StandingResponse;
 import com.fscore.app.entity.Standing;
 import com.fscore.app.exception.ResourceNotFoundException;
 import com.fscore.app.repository.StandingRepository;
+import com.fscore.app.service.LiveScoreService;
 import com.fscore.app.service.StandingService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,9 +17,11 @@ import java.util.Optional;
 public class StandingServiceImpl implements StandingService {
 
     private final StandingRepository repository;
+    private final LiveScoreService liveScoreService;
 
-    public StandingServiceImpl(StandingRepository repository) {
+    public StandingServiceImpl(StandingRepository repository, LiveScoreService liveScoreService) {
         this.repository = repository;
+        this.liveScoreService = liveScoreService;
     }
 
     @Override
@@ -33,7 +36,9 @@ public class StandingServiceImpl implements StandingService {
 
     @Override
     public Standing save(Standing entity) {
-        return repository.save(entity);
+        Standing saved = repository.save(entity);
+        liveScoreService.broadcastStanding(saved);
+        return saved;
     }
 
     @Override
@@ -41,7 +46,9 @@ public class StandingServiceImpl implements StandingService {
         Standing existing = repository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Standing not found with id: " + id));
         entity.setId(existing.getId());
-        return repository.save(entity);
+        Standing updated = repository.save(entity);
+        liveScoreService.broadcastStanding(updated);
+        return updated;
     }
 
     @Override

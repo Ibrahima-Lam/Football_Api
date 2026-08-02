@@ -12,6 +12,17 @@ export interface PageResponse<T> {
   last: boolean;
 }
 
+export interface FileResponse {
+  id: string;
+  originalName: string;
+  fileName: string;
+  category: string;
+  contentType: string;
+  size: number;
+  url: string;
+  createdAt: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -50,5 +61,11 @@ export class ApiService {
 
   delete(resource: string, id: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${resource}/${id}`).pipe(timeout(15000));
+  }
+
+  upload(file: File): Observable<FileResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<FileResponse>(`${this.baseUrl}/files`, formData).pipe(timeout(300000));
   }
 }

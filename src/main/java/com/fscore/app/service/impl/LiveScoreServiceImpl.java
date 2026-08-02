@@ -5,11 +5,13 @@ import com.fscore.app.dto.response.MatchEventResponse;
 import com.fscore.app.dto.response.MatchStatisticsPlayerResponse;
 import com.fscore.app.dto.response.MatchStatisticsTeamResponse;
 import com.fscore.app.dto.response.NewsResponse;
+import com.fscore.app.dto.response.StandingResponse;
 import com.fscore.app.entity.Match;
 import com.fscore.app.entity.MatchEvent;
 import com.fscore.app.entity.MatchStatisticsPlayer;
 import com.fscore.app.entity.MatchStatisticsTeam;
 import com.fscore.app.entity.News;
+import com.fscore.app.entity.Standing;
 import com.fscore.app.service.LiveScoreService;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -23,6 +25,7 @@ public class LiveScoreServiceImpl implements LiveScoreService {
     public static final String TOPIC_EVENTS = "/topic/events";
     public static final String TOPIC_NEWS = "/topic/news";
     public static final String TOPIC_STATS = "/topic/stats";
+    public static final String TOPIC_STANDINGS = "/topic/standings";
 
     private final SimpMessagingTemplate messagingTemplate;
 
@@ -156,5 +159,33 @@ public class LiveScoreServiceImpl implements LiveScoreService {
             .rating(stats.getRating())
             .build();
         messagingTemplate.convertAndSend(TOPIC_STATS, response);
+    }
+
+    @Override
+    public void broadcastStanding(Standing standing) {
+        StandingResponse response = StandingResponse.builder()
+            .id(standing.getId())
+            .seasonId(standing.getSeason() != null ? standing.getSeason().getId() : null)
+            .stageId(standing.getStage() != null ? standing.getStage().getId() : null)
+            .groupId(standing.getGroup() != null ? standing.getGroup().getId() : null)
+            .teamId(standing.getTeam() != null ? standing.getTeam().getId() : null)
+            .rankPosition(standing.getRankPosition())
+            .played(standing.getPlayed())
+            .wins(standing.getWins())
+            .draws(standing.getDraws())
+            .losses(standing.getLosses())
+            .homeWins(standing.getHomeWins())
+            .homeDraws(standing.getHomeDraws())
+            .homeLosses(standing.getHomeLosses())
+            .awayWins(standing.getAwayWins())
+            .awayDraws(standing.getAwayDraws())
+            .awayLosses(standing.getAwayLosses())
+            .goalsFor(standing.getGoalsFor())
+            .goalsAgainst(standing.getGoalsAgainst())
+            .goalDifference(standing.getGoalDifference())
+            .points(standing.getPoints())
+            .form(standing.getForm())
+            .build();
+        messagingTemplate.convertAndSend(TOPIC_STANDINGS, response);
     }
 }

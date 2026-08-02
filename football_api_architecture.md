@@ -1368,3 +1368,92 @@ Indexes:
 - Les `TIMESTAMP` sont stockés en UTC
 - Les montants financiers (fee, salary, market_value) sont en EUR par défaut, avec `currency` si besoin
 - Les coordonnées géographiques utilisent `DECIMAL(9,6)` pour une précision de ~0.1 mm
+
+---
+
+# Module Stockage de fichiers (images / vidéos)
+
+## Objectif
+
+Stocker sur disque local les images et vidéos (logos, photos, images de news, drapeaux, médias) et les servir publiquement. Les entités conservent l'URL du fichier (`/uploads/...`) dans leurs champs existants (`logo`, `photo`, `image`, `flag_url`, `image_url`, `url`, `thumbnail_url`).
+
+## Configuration
+
+Fichier : `src/main/resources/application.properties`
+
+```properties
+# Dossier racine sur le disque (hors classpath). Les fichiers sont servis via /uploads/**
+app.storage.location=./data/uploads
+# Taille max par type (octets)
+app.storage.max-image-size=10485760      # 10 Mo
+app.storage.max-video-size=209715200     # 200 Mo
+
+spring.servlet.multipart.max-file-size=210MB
+spring.servlet.multipart.max-request-size=220MB
+```
+
+En prod, surcharger via env vars : `APP_STORAGE_LOCATION`, `APP_STORAGE_MAX_IMAGE_SIZE`, `APP_STORAGE_MAX_VIDEO_SIZE`.
+
+## API
+
+### Upload (authentifié, multipart)
+
+`POST /api/files` — champ `file`
+
+Réponse `201` :
+
+```json
+{
+  "id": "uuid",
+  "originalName": "logo.png",
+  "fileName": "a1b2c3...png",
+  "category": "images",
+  "contentType": "image/png",
+  "size": 12345,
+  "url": "/uploads/images/a1b2c3...png",
+  "createdAt": "2026-08-02T00:00:00"
+}
+```
+
+### Liste des fichiers (authentifié)
+
+`GET /api/files?page=0&size=20&category=images` — paginé, filtrable (voir FilterService).
+
+### Détail (authentifié)
+
+`GET /api/files/{id}`
+
+### Suppression (authentifié)
+
+`DELETE /api/files/{id}` — supprime la ligne + le fichier du disque.
+
+### Lecture publique
+
+`GET /uploads/**` — sert directement les fichiers depuis `app.storage.location` avec cache 30 jours et support des requêtes Range (streaming vidéo). Aucune authentification requise.
+
+## Règles
+
+- Types acceptés : `image/*` et `video/*` uniquement. Tout autre type => `400`.
+- Taille limitée par catégorie : images 10 Mo, vidéos 200 Mo (configurable) => `413` au-delà.
+- Nom de fichier généré en UUID (pas d'upload de chemin), extension conservée et assainie.
+- Anti path traversal : tout chemin de fichier est normalisé et vérifié contre la racine de stockage.
+- Nommage des dossiers par catégorie : `{location}/images/*`, `{location}/videos/*`.
+
+## Table `stored_files`
+
+| Champ | Type | Nullable | Description |
+|-------|------|----------|-------------|
+| id | UUID | Non | Identifiant |
+| original_name | VARCHAR(255) | Non | Nom original du fichier |
+| file_name | VARCHAR(255) | Non | Nom généré (UUID + extension) |
+| category | VARCHAR(20) | Non | `images` ou `videos` |
+| content_type | VARCHAR(100) | Non | Type MIME |
+| size | BIGINT | Non | Taille en octets |
+| url_path | VARCHAR(500) | Non | URL publique (`/uploads/...`) |
+| created_at | TIMESTAMP | Non | Date d'upload |
+
+## Backoffice admin
+
+- Les champs de type `file` (`logo`, `photo`, `image`, `flagUrl`, `imageUrl`) dans `entity-config.ts` affichent un upload avec preview (image ou vidéo) et bouton Retirer. L'URL résultante est enregistrée dans le champ de l'entité.
+- Le proxy de dev (`proxy.conf.json`) route `/api/` et `/uploads/` vers le backend (port 8080).
+- Déploiement : après `npm run build` dans `football-admin/`, copier `dist/football-admin/*` vers `src/main/resources/static/`.

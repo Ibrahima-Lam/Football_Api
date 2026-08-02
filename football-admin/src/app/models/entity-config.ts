@@ -8,7 +8,7 @@ export interface ColumnDef {
 export interface FormFieldDef {
   name: string;
   label: string;
-  type: 'text' | 'number' | 'email' | 'date' | 'datetime-local' | 'select' | 'boolean' | 'textarea' | 'password' | 'url';
+  type: 'text' | 'number' | 'email' | 'date' | 'datetime-local' | 'select' | 'boolean' | 'textarea' | 'password' | 'url' | 'file';
   required?: boolean;
   placeholder?: string;
   min?: number;
@@ -20,6 +20,7 @@ export interface FormFieldDef {
   resource?: string;
   displayField?: string;
   valueField?: string;
+  fileKind?: 'image' | 'video';
 }
 
 export interface FilterDef {
@@ -113,7 +114,7 @@ export const ENTITY_CONFIGS: Record<string, EntityConfig> = {
       { name: 'iso2', label: 'ISO2', type: 'text', required: true, maxLength: 2 },
       { name: 'iso3', label: 'ISO3', type: 'text', required: true, maxLength: 3 },
       { name: 'fifaCode', label: 'FIFA Code', type: 'text', maxLength: 3 },
-      { name: 'flagUrl', label: 'Flag URL', type: 'url' }
+      { name: 'flagUrl', label: 'Flag URL', type: 'file', fileKind: 'image' }
     ]
   },
   cities: {
@@ -134,7 +135,7 @@ export const ENTITY_CONFIGS: Record<string, EntityConfig> = {
       { name: 'name', label: 'Name', type: 'text', required: true, maxLength: 200 },
       fk('continentId', 'Continent', 'continents'),
       { name: 'acronym', label: 'Acronym', type: 'text', required: true, maxLength: 20 },
-      { name: 'logo', label: 'Logo', type: 'url' },
+      { name: 'logo', label: 'Logo', type: 'file', fileKind: 'image' },
       { name: 'website', label: 'Website', type: 'url' },
       { name: 'founded', label: 'Founded', type: 'number' },
       { name: 'headquarters', label: 'Headquarters', type: 'text', maxLength: 200 }
@@ -153,7 +154,7 @@ export const ENTITY_CONFIGS: Record<string, EntityConfig> = {
       enumSelect('Age Level', 'ageLevel', AGE_LEVELS),
       enumSelect('Sport', 'sport', SPORTS),
       { name: 'level', label: 'Level', type: 'number' },
-      { name: 'logo', label: 'Logo', type: 'url' },
+      { name: 'logo', label: 'Logo', type: 'file', fileKind: 'image' },
       { name: 'founded', label: 'Founded', type: 'number' },
       { name: 'website', label: 'Website', type: 'url' },
       boolSelect('Active', 'active')
@@ -244,7 +245,7 @@ export const ENTITY_CONFIGS: Record<string, EntityConfig> = {
       fk('stadiumId', 'Stadium', 'stadiums', 'name'),
       { name: 'code', label: 'Code', type: 'text', maxLength: 20 },
       { name: 'founded', label: 'Founded', type: 'number' },
-      { name: 'logo', label: 'Logo', type: 'url' },
+      { name: 'logo', label: 'Logo', type: 'file', fileKind: 'image' },
       { name: 'kitPrimaryColor', label: 'Kit Primary Color', type: 'text', maxLength: 7 },
       { name: 'kitSecondaryColor', label: 'Kit Secondary Color', type: 'text', maxLength: 7 },
       { name: 'website', label: 'Website', type: 'url' },
@@ -268,7 +269,7 @@ export const ENTITY_CONFIGS: Record<string, EntityConfig> = {
       { name: 'longitude', label: 'Longitude', type: 'number', step: 0.000001 },
       { name: 'address', label: 'Address', type: 'textarea' },
       { name: 'opened', label: 'Opened', type: 'number' },
-      { name: 'image', label: 'Image', type: 'url' }
+      { name: 'image', label: 'Image', type: 'file', fileKind: 'image' }
     ]
   },
   referees: {
@@ -280,7 +281,7 @@ export const ENTITY_CONFIGS: Record<string, EntityConfig> = {
       { name: 'lastName', label: 'Last Name', type: 'text', required: true, maxLength: 100 },
       { name: 'fullName', label: 'Full Name', type: 'text', required: true, maxLength: 200 },
       { name: 'birthDate', label: 'Birth Date', type: 'date' },
-      { name: 'photo', label: 'Photo', type: 'url' },
+      { name: 'photo', label: 'Photo', type: 'file', fileKind: 'image' },
       enumSelect('Category', 'category', REFEREE_CATEGORIES),
       boolSelect('Active', 'active')
     ]
@@ -294,7 +295,7 @@ export const ENTITY_CONFIGS: Record<string, EntityConfig> = {
       { name: 'lastName', label: 'Last Name', type: 'text', required: true, maxLength: 100 },
       { name: 'fullName', label: 'Full Name', type: 'text', required: true, maxLength: 200 },
       { name: 'birthDate', label: 'Birth Date', type: 'date' },
-      { name: 'photo', label: 'Photo', type: 'url' },
+      { name: 'photo', label: 'Photo', type: 'file', fileKind: 'image' },
       enumSelect('Role', 'role', COACH_ROLES),
       boolSelect('Active', 'active')
     ]
@@ -328,7 +329,7 @@ export const ENTITY_CONFIGS: Record<string, EntityConfig> = {
       { name: 'weight', label: 'Weight (kg)', type: 'number', step: 0.01 },
       enumSelect('Preferred Foot', 'preferredFoot', FOOT_PREFERENCES, false),
       enumSelect('Position', 'position', PLAYER_POSITIONS),
-      { name: 'photo', label: 'Photo', type: 'url' },
+      { name: 'photo', label: 'Photo', type: 'file', fileKind: 'image' },
       { name: 'marketValue', label: 'Market Value', type: 'number', step: 0.01 },
       enumSelect('Status', 'status', PLAYER_STATUSES),
       { name: 'twitter', label: 'Twitter', type: 'url' },
@@ -641,7 +642,7 @@ export const ENTITY_CONFIGS: Record<string, EntityConfig> = {
       { name: 'name', label: 'Name', type: 'text', required: true, maxLength: 200 },
       enumSelect('Type', 'type', TROPHY_TYPES),
       fk('competitionId', 'Competition', 'competitions'),
-      { name: 'logo', label: 'Logo', type: 'url' }
+      { name: 'logo', label: 'Logo', type: 'file', fileKind: 'image' }
     ]
   },
   teamtrophys: {
@@ -683,7 +684,7 @@ export const ENTITY_CONFIGS: Record<string, EntityConfig> = {
     formFields: [
       { name: 'name', label: 'Name', type: 'text', required: true, maxLength: 100 },
       { name: 'website', label: 'Website', type: 'url' },
-      { name: 'logo', label: 'Logo', type: 'url' },
+      { name: 'logo', label: 'Logo', type: 'file', fileKind: 'image' },
       boolSelect('Active', 'active')
     ]
   },
@@ -723,7 +724,7 @@ export const ENTITY_CONFIGS: Record<string, EntityConfig> = {
       fk('competitionId', 'Competition', 'competitions'),
       fk('teamId', 'Team', 'teams'),
       fk('playerId', 'Player', 'players', 'fullName'),
-      { name: 'image', label: 'Image', type: 'url' },
+      { name: 'image', label: 'Image', type: 'file', fileKind: 'image' },
       { name: 'author', label: 'Author', type: 'text', maxLength: 200 },
       { name: 'language', label: 'Language', type: 'text', required: true, maxLength: 10 },
       { name: 'sourceUrl', label: 'Source URL', type: 'url' },
@@ -751,7 +752,7 @@ export const ENTITY_CONFIGS: Record<string, EntityConfig> = {
     columns: [{ header: 'ID', field: 'id' }, { header: 'Name', field: 'nom' }, { header: 'Website', field: 'websiteUrl' }, { header: 'Rating', field: 'rating', type: 'number' }],
     formFields: [
       { name: 'nom', label: 'Name', type: 'text', required: true, maxLength: 200 },
-      { name: 'imageUrl', label: 'Image URL', type: 'url', required: true },
+      { name: 'imageUrl', label: 'Image', type: 'file', fileKind: 'image', required: true },
       { name: 'description', label: 'Description', type: 'textarea' },
       { name: 'websiteUrl', label: 'Website', type: 'url' },
       { name: 'rating', label: 'Rating', type: 'number', step: 0.1 }
