@@ -7,4 +7,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface MatchStatisticsPlayerRepository extends JpaRepository<MatchStatisticsPlayer, String>, JpaSpecificationExecutor<MatchStatisticsPlayer> {
+
+    java.util.List<MatchStatisticsPlayer> findByMatchIdOrderByGoalsDescAssistsDesc(String matchId);
 }

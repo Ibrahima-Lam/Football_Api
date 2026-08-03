@@ -7,4 +7,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface MatchEventRepository extends JpaRepository<MatchEvent, String>, JpaSpecificationExecutor<MatchEvent> {
+
+    java.util.List<MatchEvent> findByMatchIdOrderByMinuteAscExtraMinuteAsc(String matchId);
 }

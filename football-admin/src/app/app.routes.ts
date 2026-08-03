@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { DashboardComponent } from './components/dashboard.component';
 import { CrudListComponent } from './components/crud-list.component';
+import { StandingsComponent } from './components/standings.component';
 import { ApiKeysComponent } from './components/api-keys.component';
 import { LoginComponent } from './components/login.component';
 import { MainLayoutComponent } from './layout/main-layout.component';
@@ -44,7 +45,7 @@ export const routes: Routes = [
       { path: 'matchreferees', component: CrudListComponent, data: { resource: 'matchreferees' } },
       { path: 'matchstatisticsteams', component: CrudListComponent, data: { resource: 'matchstatisticsteams' } },
       { path: 'matchstatisticsplayers', component: CrudListComponent, data: { resource: 'matchstatisticsplayers' } },
-      { path: 'standings', component: CrudListComponent, data: { resource: 'standings' } },
+      { path: 'standings', component: StandingsComponent },
       { path: 'injuries', component: CrudListComponent, data: { resource: 'injurys' } },
       { path: 'suspensions', component: CrudListComponent, data: { resource: 'suspensions' } },
       { path: 'trophies', component: CrudListComponent, data: { resource: 'trophies' } },

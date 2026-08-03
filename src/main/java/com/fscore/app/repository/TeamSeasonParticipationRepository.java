@@ -7,4 +7,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface TeamSeasonParticipationRepository extends JpaRepository<TeamSeasonParticipation, String>, JpaSpecificationExecutor<TeamSeasonParticipation> {
+    java.util.List<TeamSeasonParticipation> findBySeasonId(String seasonId);
+    java.util.List<TeamSeasonParticipation> findByTeamId(String teamId);
 }

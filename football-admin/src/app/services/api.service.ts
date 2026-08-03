@@ -59,6 +59,18 @@ export class ApiService {
     return this.http.put<T>(`${this.baseUrl}/${resource}/${id}`, body).pipe(timeout(15000));
   }
 
+  quickUpdate<T>(id: string, body: any): Observable<T> {
+    return this.http.patch<T>(`${this.baseUrl}/matches/${id}`, body).pipe(timeout(15000));
+  }
+
+  calculateStandings<T>(groupId: string): Observable<T[]> {
+    return this.http.post<T[]>(`${this.baseUrl}/standings/calculate`, { groupId }).pipe(timeout(30000));
+  }
+
+  saveStandings<T>(groupId: string): Observable<T[]> {
+    return this.http.post<T[]>(`${this.baseUrl}/standings/save`, { groupId }).pipe(timeout(30000));
+  }
+
   delete(resource: string, id: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${resource}/${id}`).pipe(timeout(15000));
   }

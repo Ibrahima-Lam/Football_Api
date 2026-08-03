@@ -7,4 +7,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface PlayerSeasonRegistrationRepository extends JpaRepository<PlayerSeasonRegistration, String>, JpaSpecificationExecutor<PlayerSeasonRegistration> {
+    java.util.List<PlayerSeasonRegistration> findByTeamId(String teamId);
+    java.util.List<PlayerSeasonRegistration> findByTeamIdAndSeasonId(String teamId, String seasonId);
 }

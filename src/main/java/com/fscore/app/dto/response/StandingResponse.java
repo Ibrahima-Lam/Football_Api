@@ -9,6 +9,7 @@ public class StandingResponse {
     private String stageId;
     private String groupId;
     private String teamId;
+    private String teamName;
     private Integer rankPosition;
     private Integer played;
     private Integer wins;

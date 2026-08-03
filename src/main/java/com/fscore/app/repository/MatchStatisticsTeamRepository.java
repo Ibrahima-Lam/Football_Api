@@ -7,4 +7,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface MatchStatisticsTeamRepository extends JpaRepository<MatchStatisticsTeam, String>, JpaSpecificationExecutor<MatchStatisticsTeam> {
+
+    java.util.List<MatchStatisticsTeam> findByMatchId(String matchId);
 }

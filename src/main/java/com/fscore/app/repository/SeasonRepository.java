@@ -7,4 +7,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface SeasonRepository extends JpaRepository<Season, String>, JpaSpecificationExecutor<Season> {
+
+    java.util.List<Season> findByCompetitionIdOrderByYearStartDesc(String competitionId);
 }

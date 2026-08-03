@@ -1,5 +1,6 @@
 package com.fscore.app.controller;
 
+import com.fscore.app.dto.request.StandingCalculateRequest;
 import com.fscore.app.dto.request.StandingRequest;
 import com.fscore.app.dto.response.StandingResponse;
 import com.fscore.app.dto.response.PageResponse;
@@ -61,6 +62,16 @@ public class StandingController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/calculate")
+    public ResponseEntity<java.util.List<StandingResponse>> calculate(@RequestBody StandingCalculateRequest request) {
+        return ResponseEntity.ok(service.calculate(request.getGroupId()));
+    }
+
+    @PostMapping("/save")
+    public ResponseEntity<java.util.List<StandingResponse>> saveCalculated(@RequestBody StandingCalculateRequest request) {
+        return ResponseEntity.ok(service.saveCalculated(request.getGroupId()));
+    }
+
     private StandingResponse mapToResponse(Standing entity) {
         StandingResponse response = StandingResponse.builder()
             .awayDraws(entity.getAwayDraws())
@@ -94,23 +105,27 @@ public class StandingController {
             .season(request.getSeasonId() != null ? Season.builder().id(request.getSeasonId()).build() : null)
             .stage(request.getStageId() != null ? Stage.builder().id(request.getStageId()).build() : null)
             .team(request.getTeamId() != null ? Team.builder().id(request.getTeamId()).build() : null)
-            .awayDraws(request.getAwayDraws())
-            .awayLosses(request.getAwayLosses())
-            .awayWins(request.getAwayWins())
-            .draws(request.getDraws())
+            .awayDraws(orZero(request.getAwayDraws()))
+            .awayLosses(orZero(request.getAwayLosses()))
+            .awayWins(orZero(request.getAwayWins()))
+            .draws(orZero(request.getDraws()))
             .form(request.getForm())
-            .goalDifference(request.getGoalDifference())
-            .goalsAgainst(request.getGoalsAgainst())
-            .goalsFor(request.getGoalsFor())
-            .homeDraws(request.getHomeDraws())
-            .homeLosses(request.getHomeLosses())
-            .homeWins(request.getHomeWins())
-            .losses(request.getLosses())
-            .played(request.getPlayed())
-            .points(request.getPoints())
-            .rankPosition(request.getRankPosition())
-            .wins(request.getWins())
+            .goalDifference(orZero(request.getGoalDifference()))
+            .goalsAgainst(orZero(request.getGoalsAgainst()))
+            .goalsFor(orZero(request.getGoalsFor()))
+            .homeDraws(orZero(request.getHomeDraws()))
+            .homeLosses(orZero(request.getHomeLosses()))
+            .homeWins(orZero(request.getHomeWins()))
+            .losses(orZero(request.getLosses()))
+            .played(orZero(request.getPlayed()))
+            .points(orZero(request.getPoints()))
+            .rankPosition(orZero(request.getRankPosition()))
+            .wins(orZero(request.getWins()))
             .build();
         return standing;
+    }
+
+    private static int orZero(Integer value) {
+        return value != null ? value : 0;
     }
 }

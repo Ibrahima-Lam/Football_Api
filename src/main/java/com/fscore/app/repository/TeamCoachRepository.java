@@ -7,4 +7,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface TeamCoachRepository extends JpaRepository<TeamCoach, String>, JpaSpecificationExecutor<TeamCoach> {
+    java.util.List<TeamCoach> findBySeasonId(String seasonId);
 }

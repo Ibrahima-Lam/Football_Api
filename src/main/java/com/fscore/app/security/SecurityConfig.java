@@ -39,7 +39,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/login").permitAll()
                 .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/api-docs/**", "/v3/api-docs/**").permitAll()
                 .requestMatchers("/error").permitAll()
-                .requestMatchers("/api/**").authenticated()
+                .requestMatchers("/api/client/**").hasRole("API")
+                .requestMatchers("/api/**").hasRole("ADMIN")
                 .anyRequest().permitAll())
             .exceptionHandling(ex -> ex.authenticationEntryPoint((request, response, authException) -> {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

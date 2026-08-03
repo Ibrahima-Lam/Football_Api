@@ -7,4 +7,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface InjuryRepository extends JpaRepository<Injury, String>, JpaSpecificationExecutor<Injury> {
+    java.util.List<Injury> findByTeamIdOrderByStartDateDesc(String teamId);
 }

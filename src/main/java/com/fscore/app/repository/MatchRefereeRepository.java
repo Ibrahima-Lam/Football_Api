@@ -7,4 +7,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface MatchRefereeRepository extends JpaRepository<MatchReferee, String>, JpaSpecificationExecutor<MatchReferee> {
+    java.util.List<MatchReferee> findByMatchSeasonId(String seasonId);
 }

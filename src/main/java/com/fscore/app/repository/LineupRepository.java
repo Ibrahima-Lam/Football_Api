@@ -7,4 +7,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface LineupRepository extends JpaRepository<Lineup, String>, JpaSpecificationExecutor<Lineup> {
+
+    java.util.List<Lineup> findByMatchIdOrderByStarterDescShirtNumberAsc(String matchId);
 }

@@ -1457,3 +1457,111 @@ Réponse `201` :
 - Les champs de type `file` (`logo`, `photo`, `image`, `flagUrl`, `imageUrl`) dans `entity-config.ts` affichent un upload avec preview (image ou vidéo) et bouton Retirer. L'URL résultante est enregistrée dans le champ de l'entité.
 - Le proxy de dev (`proxy.conf.json`) route `/api/` et `/uploads/` vers le backend (port 8080).
 - Déploiement : après `npm run build` dans `football-admin/`, copier `dist/football-admin/*` vers `src/main/resources/static/`.
+
+---
+
+# Module Client Public (API `/api/client` + frontend `football-client/`)
+
+## Objectif
+
+Exposer des données **enrichies** (objets imbriqués : équipes, joueurs, compétitions, saisons) destinées à une
+application grand public, sans que le client ait à faire des jointures. L'accès est sécurisé par **clé API**
+(`X-Api-Key`), distincte de l'authentification admin (JWT). Les DTO sont en lecture seule.
+
+## Authentification
+
+- En-tête obligatoire : `X-Api-Key: fscore_...`
+- Clés créées via le backoffice (`/api/api-keys`) et vérifiées par `ApiKeyAuthenticationFilter` +
+  `ApiKeyService.authenticate()`.
+- `/ws` (websocket STOMP) reste public (`permitAll`).
+- Exemple :
+  ```bash
+  curl -H "X-Api-Key: fscore_xxx" "http://localhost:8080/api/client/matches?date=2026-08-02"
+  ```
+
+## Endpoints
+
+| Méthode | URL | Paramètres | Description |
+|---------|-----|------------|-------------|
+| GET | `/api/client/matches` | `date` (ISO), `seasonId`, `competitionId`, `teamId`, `page`, `size` | Matchs paginés, triés par coup d'envoi |
+| GET | `/api/client/matches/{id}` | — | Détail complet : scoreboard (MT/AP/PEN), événements, stats équipe/joueur, compositions |
+| GET | `/api/client/competitions` | — | Compétitions actives avec saison courante |
+| GET | `/api/client/competitions/{id}` | — | Compétition + liste des saisons |
+| GET | `/api/client/seasons` | `competitionId` | Saisons d'une compétition |
+| GET | `/api/client/standings` | `seasonId`, `stageId` (opt) | Classement d'une saison |
+| GET | `/api/client/teams` | `seasonId` (opt) | Équipes d'une saison, ou toutes les équipes si omis |
+| GET | `/api/client/teams/{id}` | — | Détail équipe : infos, pays, stade |
+| GET | `/api/client/player-stats` | `seasonId`, `stat` (`scorers`/`assists`/`cards`) | Statistiques joueurs d'une saison |
+| GET | `/api/client/news` | `competitionId` (opt), `teamId` (opt) | Actualités filtrées par compétition et/ou équipe |
+| GET | `/api/client/referees` | `seasonId` | Arbitres d'une saison |
+| GET | `/api/client/coaches` | `seasonId` | Coachs d'une saison |
+
+## DTOs (`com.fscore.app.dto.client`)
+
+Records sérialisés directement par Jackson (pas de Lombok, immuables) :
+
+- `TeamRef` : id, name, shortName, code, logo, kitPrimaryColor, countryIso2, countryFlag
+- `PlayerRef` : id, fullName, firstName, lastName, position, photo, preferredFoot
+- `CompetitionRef` : id, name, shortName, type, gender, ageLevel, sport, logo, level, country/confederation, currentSeason
+- `SeasonRef` : id, name, yearStart, yearEnd, startDate, endDate, current, status
+- `MatchCard` : kickoff, status, period, minute, scores (FT/MT/AP/PEN), home/away `TeamRef`,
+  `CompetitionRef`, `SeasonRef`, stage/group/round, stadium
+- `MatchDetail` : `MatchCard` + referee, ville, affluence, météo, note, pénaltys, `events`, `teamStats`,
+  `playerStats`, `lineups`
+- `MatchEventItem`, `TeamStatItem`, `PlayerStatItem`, `LineupItem` (avec `team`), `StandingItem`, `CompetitionDetail`
+- `PageInfo<T>` : structure paginée (compatible `content/totalPages/totalElements/size/number/first/last`)
+
+## Implémentation
+
+- `ClientApiService` : `@Transactional(readOnly = true)`, specifications dynamiques pour les filtres
+  (date = intervalle de journée sur `kickoff`, `season.id`, `season.competition.id`, `homeTeam.id OR awayTeam.id`).
+- `ClientController` : `@RequestMapping("/api/client")`.
+- Repositories enrichis : `findByMatchIdOrderByMinuteAscExtraMinuteAsc` (events),
+  `findByMatchIdOrderByStarterDescShirtNumberAsc` (lineups), `findByMatchId` (stats),
+  `findBySeasonIdOrderByRankPositionAsc` (standings), `findByCompetitionIdOrderByYearStartDesc` (seasons).
+- `MatchCard.competition` est résolu sans requête supplémentaire par saison (`includeSeason=false`).
+
+## Frontend `football-client/`
+
+Application Angular (22, standalone, Bootstrap 5.3 + bootstrap-icons) à **design moderne** :
+navbar dégradé sombre, cartes arrondies avec effet de survol, badges de statut, dots "live" animés,
+timeline d'événements, barres de comparaison de stats, tableau de classement coloré.
+
+### Pages / routes
+
+| Route | Contenu |
+|-------|---------|
+| `/` | Onglets **Matchs** (navigation par date, filtres compétition/saison/équipe, groupés par compétition, pagination), **Équipes** (grille cliquable), **Actualités** (news) |
+| `/match/:id` | Scoreboard (avec MT/AP/PEN), onglets Résumé (timeline), Statistiques (comparaison + joueurs), Compositions (XI + remplaçants) |
+| `/team/:id` | Détail équipe : infos (pays, stade), onglets Matchs (filtre date) et Actualités |
+| `/competitions` | Grille de cartes compétitions (logo, pays/confédération, saison courante) |
+| `/competition/:id` | Onglets Classement (avec zones promo/relégation + forme W/D/L), Matchs (filtre date), Équipes, Statistiques, Arbitres, News, Coachs |
+| `/settings` | Clé API, URL websocket, test de connexion, statut du direct |
+
+### Services
+
+- `ApiService` : appels `/api/client/**` typés.
+- `SettingsService` : clé API et URL broker persistées en `localStorage` ; clé par défaut préremplie.
+- `LiveService` : client STOMP (`@stomp/stompjs`) sur `/ws`, reconnexion automatique, `subscribe(topic)` observable,
+  état `connected()` (badge navbar).
+- `api-key.interceptor` : ajoute `X-Api-Key` à toutes les requêtes `/api/`.
+
+### Websocket (direct)
+
+- Canaux écoutés : `/topic/live` (scores en direct), `/topic/events` (événements), `/topic/standings` (classement),
+  `/topic/stats` (stats). Le détail de match met à jour score/minute/événements en place pour les matchs non terminés.
+
+### Développement
+
+```bash
+# Backend
+./mvnw spring-boot:run            # port 8080
+
+# Frontend client
+cd football-client
+npm install
+npm run start                     # port 4200, proxy /api, /uploads, /ws -> 8080
+```
+
+Le `proxy.conf.json` route `/api/`, `/uploads/` et `/ws` (websocket) vers le backend. La clé API par défaut est
+préremplie dans `SettingsService` ; elle reste modifiable dans les paramètres de l'app.

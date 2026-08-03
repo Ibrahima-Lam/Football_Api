@@ -28,6 +28,11 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
     }
 
     @Override
+    protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
+        return !request.getServletPath().startsWith("/api/client/");
+    }
+
+    @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
                                     @NonNull HttpServletResponse response,
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
@@ -40,7 +45,7 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
                 return;
             }
             var auth = new UsernamePasswordAuthenticationToken(
-                user, null, List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
+                user, null, List.of(new SimpleGrantedAuthority("ROLE_API")));
             SecurityContextHolder.getContext().setAuthentication(auth);
         }
         filterChain.doFilter(request, response);

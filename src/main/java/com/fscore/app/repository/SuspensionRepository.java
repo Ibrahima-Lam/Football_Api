@@ -7,4 +7,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface SuspensionRepository extends JpaRepository<Suspension, String>, JpaSpecificationExecutor<Suspension> {
+    java.util.List<Suspension> findByTeamIdOrderByStartDateDesc(String teamId);
 }

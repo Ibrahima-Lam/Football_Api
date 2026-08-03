@@ -1,5 +1,6 @@
 package com.fscore.app.controller;
 
+import com.fscore.app.dto.request.MatchLiveUpdateRequest;
 import com.fscore.app.dto.request.MatchRequest;
 import com.fscore.app.dto.response.MatchResponse;
 import com.fscore.app.dto.response.PageResponse;
@@ -52,6 +53,13 @@ public class MatchController {
     public ResponseEntity<MatchResponse> update(@PathVariable String id, @Valid @RequestBody MatchRequest request) {
         Match entity = mapToEntity(request);
         Match updated = service.update(id, entity);
+        return ResponseEntity.ok(mapToResponse(updated));
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<MatchResponse> partialUpdate(@PathVariable String id,
+                                                       @RequestBody MatchLiveUpdateRequest request) {
+        Match updated = service.applyLiveUpdate(id, request);
         return ResponseEntity.ok(mapToResponse(updated));
     }
 

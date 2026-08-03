@@ -76,7 +76,7 @@ public class Standing {
     @Column(nullable = false)
     private Integer points = 0;
 
-    @Column(length = 10)
+    @Column(length = 255)
     private String form;
 
     @UpdateTimestamp

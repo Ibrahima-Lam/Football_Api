@@ -26,7 +26,7 @@ import { GlobalFilterService, GlobalFilterState } from '../services/global-filte
             <form #f="ngForm">
               <div class="row g-3">
                 @for (field of visibleFields; track field.name) {
-                  <div class="col-12" [class.col-md-6]="field.type !== 'textarea'">
+                  <div class="col-12" [class.col-md-6]="field.type !== 'textarea' && field.colSpan !== 12">
                     <label class="form-label fw-medium small text-muted mb-1">{{ field.label }}@if (field.required) { <span class="text-danger">*</span> }</label>
                     @if (field.type === 'textarea') {
                       <textarea class="form-control" [name]="field.name" [(ngModel)]="model[field.name]"

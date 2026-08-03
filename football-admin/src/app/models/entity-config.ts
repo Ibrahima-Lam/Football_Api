@@ -21,6 +21,7 @@ export interface FormFieldDef {
   displayField?: string;
   valueField?: string;
   fileKind?: 'image' | 'video';
+  colSpan?: number;
 }
 
 export interface FilterDef {
@@ -38,6 +39,7 @@ export interface EntityConfig {
   resource: string;
   columns: ColumnDef[];
   formFields: FormFieldDef[];
+  quickFields?: FormFieldDef[];
   idField: string;
   itemName: string;
 }
@@ -448,6 +450,23 @@ export const ENTITY_CONFIGS: Record<string, EntityConfig> = {
       { name: 'secondHalfStart', label: 'Second Half Start', type: 'datetime-local' },
       { name: 'extraTimeStart', label: 'Extra Time Start', type: 'datetime-local' },
       { name: 'penaltyShootoutStart', label: 'Penalty Shootout Start', type: 'datetime-local' }
+    ],
+    quickFields: [
+      { name: 'kickoff', label: 'Kickoff', type: 'datetime-local', colSpan: 12 },
+      enumSelect('Status', 'status', MATCH_STATUSES, false),
+      enumSelect('Period', 'period', MATCH_PERIODS, false),
+      { name: 'minute', label: 'Minute', type: 'number' },
+      { name: 'minuteExtra', label: 'Extra Minutes', type: 'number' },
+      { name: 'homeScore', label: 'Home Score', type: 'number' },
+      { name: 'awayScore', label: 'Away Score', type: 'number' },
+      { name: 'homeHtScore', label: 'Home HT Score', type: 'number' },
+      { name: 'awayHtScore', label: 'Away HT Score', type: 'number' },
+      { name: 'homeEtScore', label: 'Home ET Score', type: 'number' },
+      { name: 'awayEtScore', label: 'Away ET Score', type: 'number' },
+      { name: 'homePenaltyScore', label: 'Home Penalty Score', type: 'number' },
+      { name: 'awayPenaltyScore', label: 'Away Penalty Score', type: 'number' },
+      { name: 'homePenaltyForm', label: 'Home Penalty Form', type: 'text', maxLength: 30 },
+      { name: 'awayPenaltyForm', label: 'Away Penalty Form', type: 'text', maxLength: 30 }
     ]
   },
   lineups: {
@@ -599,7 +618,7 @@ export const ENTITY_CONFIGS: Record<string, EntityConfig> = {
       { name: 'goalsAgainst', label: 'Goals Against', type: 'number', required: true },
       { name: 'goalDifference', label: 'Goal Difference', type: 'number' },
       { name: 'points', label: 'Points', type: 'number', required: true },
-      { name: 'form', label: 'Form', type: 'text', maxLength: 10 }
+      { name: 'form', label: 'Form', type: 'text', maxLength: 255 }
     ]
   },
   injurys: {

@@ -123,7 +123,7 @@ import { FormModalComponent } from './form-modal.component';
                         <span>{{ col.header }}</span>
                       </th>
                     }
-                    <th class="text-end" style="width:120px">Actions</th>
+                    <th class="text-end" [style.width]="quickFormFields.length ? '150px' : '120px'">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -150,6 +150,11 @@ import { FormModalComponent } from './form-modal.component';
                           <button class="btn btn-outline-info" title="View" (click)="viewItem(item)">
                             <i class="bi bi-eye"></i>
                           </button>
+                          @if (quickFormFields.length) {
+                            <button class="btn btn-outline-success" title="Quick update" (click)="openQuick(item)">
+                              <i class="bi bi-lightning-charge"></i>
+                            </button>
+                          }
                           <button class="btn btn-outline-warning" title="Edit" (click)="editItem(item)">
                             <i class="bi bi-pencil"></i>
                           </button>
@@ -202,6 +207,12 @@ import { FormModalComponent } from './form-modal.component';
       <app-form-modal #formModal [title]="modalTitle" [fields]="formFields" [model]="editModel"
         [submitLabel]="modalSubmitLabel"
         (save)="onModalSave($event)" (cancel)="closeModal()" />
+    }
+
+    @if (showQuickModal) {
+      <app-form-modal #quickModal [title]="quickTitle" [fields]="quickFormFields" [model]="quickModel"
+        submitLabel="Update"
+        (save)="onQuickSave($event)" (cancel)="closeQuickModal()" />
     }
 
     @if (showViewModal) {
@@ -267,11 +278,13 @@ import { FormModalComponent } from './form-modal.component';
 })
 export class CrudListComponent implements OnInit, OnDestroy {
   @ViewChild('formModal') formModalComponent?: FormModalComponent;
+  @ViewChild('quickModal') quickModalComponent?: FormModalComponent;
 
   title = '';
   resource = '';
   columns: ColumnDef[] = [];
   formFields: FormFieldDef[] = [];
+  quickFormFields: FormFieldDef[] = [];
   idField = 'id';
   itemName = '';
   titleIcon = 'bi-table';
@@ -291,10 +304,13 @@ export class CrudListComponent implements OnInit, OnDestroy {
   entityScope: EntityScope = {};
 
   showModal = false;
+  showQuickModal = false;
   showViewModal = false;
   showDeleteConfirm = false;
   isEditing = false;
   editModel: any = {};
+  quickModel: any = {};
+  quickTitle = '';
   viewModel: any = {};
   modalTitle = '';
   modalSubmitLabel = 'Save';
@@ -322,6 +338,7 @@ export class CrudListComponent implements OnInit, OnDestroy {
       this.title = cfg?.title || data['title'] || this.title;
       this.columns = cfg?.columns || data['columns'] || this.columns;
       this.formFields = cfg?.formFields || [];
+      this.quickFormFields = cfg?.quickFields || [];
       this.idField = cfg?.idField || data['idField'] || 'id';
       this.itemName = cfg?.itemName || data['itemName'] || 'item';
       this.searchPlaceholder = getEntitySearchPlaceholder(this.resource);
@@ -335,10 +352,13 @@ export class CrudListComponent implements OnInit, OnDestroy {
       this.searchTerm = '';
       this.filterValues = {};
       this.showModal = false;
+      this.showQuickModal = false;
       this.showViewModal = false;
       this.showDeleteConfirm = false;
       this.isEditing = false;
       this.editModel = {};
+      this.quickModel = {};
+      this.quickTitle = '';
       this.viewModel = {};
       this.selectedItem = null;
 
@@ -554,9 +574,9 @@ export class CrudListComponent implements OnInit, OnDestroy {
     });
   }
 
-  private buildPayload(data: any): any {
+  private buildPayload(data: any, fields: FormFieldDef[] = this.formFields): any {
     const payload: any = {};
-    for (const field of this.formFields) {
+    for (const field of fields) {
       if (field.name in data && data[field.name] !== undefined && data[field.name] !== null) {
         payload[field.name] = data[field.name];
       }
@@ -572,5 +592,36 @@ export class CrudListComponent implements OnInit, OnDestroy {
   closeModal() {
     this.showModal = false;
     this.cdr.detectChanges();
+  }
+
+  openQuick(item: any) {
+    this.quickModel = { ...item };
+    const home = item.homeTeam?.name;
+    const away = item.awayTeam?.name;
+    this.quickTitle = home && away ? `Quick update · ${home} vs ${away}` : 'Quick update';
+    this.showQuickModal = true;
+    this.cdr.detectChanges();
+  }
+
+  closeQuickModal() {
+    this.showQuickModal = false;
+    this.cdr.detectChanges();
+  }
+
+  onQuickSave(data: any) {
+    const payload = this.buildPayload(data, this.quickFormFields);
+    this.api.quickUpdate(this.quickModel[this.idField], payload).pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => {
+        this.toast.show(`${this.itemName} updated successfully`, 'success');
+        this.showQuickModal = false;
+        this.loadItems(this.page.number);
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.toast.show('Error: ' + err.message, 'danger');
+        this.quickModalComponent?.resetSubmitting();
+        this.cdr.detectChanges();
+      }
+    });
   }
 }

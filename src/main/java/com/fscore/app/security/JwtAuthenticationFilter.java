@@ -28,6 +28,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     @Override
+    protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
+        return request.getServletPath().startsWith("/api/client/");
+    }
+
+    @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
                                     @NonNull HttpServletResponse response,
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {

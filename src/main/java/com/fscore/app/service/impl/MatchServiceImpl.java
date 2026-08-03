@@ -1,5 +1,6 @@
 package com.fscore.app.service.impl;
 
+import com.fscore.app.dto.request.MatchLiveUpdateRequest;
 import com.fscore.app.dto.response.MatchResponse;
 import com.fscore.app.entity.Match;
 import com.fscore.app.exception.ResourceNotFoundException;
@@ -52,6 +53,31 @@ public class MatchServiceImpl implements MatchService {
             .orElseThrow(() -> new ResourceNotFoundException("Match not found with id: " + id));
         entity.setId(existing.getId());
         Match updated = repository.save(entity);
+        liveScoreService.broadcastMatchUpdate(updated);
+        pushNotificationService.notifyMatchUpdate(existing, updated);
+        return updated;
+    }
+
+    @Override
+    public Match applyLiveUpdate(String id, MatchLiveUpdateRequest request) {
+        Match existing = repository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Match not found with id: " + id));
+        if (request.getKickoff() != null) existing.setKickoff(request.getKickoff());
+        if (request.getStatus() != null) existing.setStatus(request.getStatus());
+        if (request.getPeriod() != null) existing.setPeriod(request.getPeriod());
+        if (request.getMinute() != null) existing.setMinute(request.getMinute());
+        if (request.getMinuteExtra() != null) existing.setMinuteExtra(request.getMinuteExtra());
+        if (request.getHomeScore() != null) existing.setHomeScore(request.getHomeScore());
+        if (request.getAwayScore() != null) existing.setAwayScore(request.getAwayScore());
+        if (request.getHomeHtScore() != null) existing.setHomeHtScore(request.getHomeHtScore());
+        if (request.getAwayHtScore() != null) existing.setAwayHtScore(request.getAwayHtScore());
+        if (request.getHomeEtScore() != null) existing.setHomeEtScore(request.getHomeEtScore());
+        if (request.getAwayEtScore() != null) existing.setAwayEtScore(request.getAwayEtScore());
+        if (request.getHomePenaltyScore() != null) existing.setHomePenaltyScore(request.getHomePenaltyScore());
+        if (request.getAwayPenaltyScore() != null) existing.setAwayPenaltyScore(request.getAwayPenaltyScore());
+        if (request.getHomePenaltyForm() != null) existing.setHomePenaltyForm(request.getHomePenaltyForm());
+        if (request.getAwayPenaltyForm() != null) existing.setAwayPenaltyForm(request.getAwayPenaltyForm());
+        Match updated = repository.save(existing);
         liveScoreService.broadcastMatchUpdate(updated);
         pushNotificationService.notifyMatchUpdate(existing, updated);
         return updated;
